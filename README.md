@@ -1,11 +1,17 @@
 # argus
+**Agentic Recursive Generator of Unique States**
 
-A Slack-driven coding agent. A bridge process listens on Slack, classifies each
-message, selects a model, and runs the [Claude Code](https://github.com/anthropics/claude-code)
-CLI inside a per-message Docker container. The agent's own source tree is one of
-its memory layers: it edits `bridge/`, `scheduler/`, `capability-memory/`, and
-`docker/` through pull requests, the same way it edits any other repository. Task
-metadata and schedules live in SQLite alongside that.
+A Slack-driven coding agent built on the [Claude Code](https://github.com/anthropics/claude-code)
+CLI. A bridge process listens on Slack, classifies each message, selects a model,
+and runs the CLI inside a per-message Docker container.
+
+The defining property: conversations produce code. When asked to change how it
+routes, classifies, schedules, or behaves, the agent modifies its own `bridge/`,
+`scheduler/`, `capability-memory/`, and `docker/` through pull requests — the same
+mechanism used for any other repository. Natural language in; changed agent out.
+The recursive part is not a metaphor.
+
+Task metadata and schedules live in SQLite alongside that.
 
 ## Components
 

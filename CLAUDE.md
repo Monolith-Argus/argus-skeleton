@@ -1,15 +1,15 @@
-# Argus
+# Argus — Agentic Recursive Generator of Unique States
 
 Argus is a Slack-driven coding agent that runs on the Claude Code CLI. A bridge
 process spawns a container per Slack message; inside that container, the `claude`
 CLI does the work. This file documents how the agent operates on its own repo.
 
-The agent's source tree is one of its memory layers. Behavior that should persist
-is committed to `bridge/`, `scheduler/`, `docker/`, or `capability-memory/` —
-written as code and configuration, not held in a database. When a request asks to
-change how the agent routes, classifies, schedules, or formats output, that means
-editing this codebase on a branch, opening a pull request, and merging it. The
-`claude` binary itself is not modifiable from inside the container.
+The source tree is the primary output medium for self-change. When a conversation
+asks for a behavior change — routing logic, classification rules, output formatting,
+scheduling — the agent edits this codebase, opens a pull request, and merges it.
+The changed code runs in the next container. Natural language in; different agent
+out. This is what "agentic recursive" means in practice. The `claude` binary itself
+is not modifiable from inside the container; everything else is.
 
 ## Architecture
 
