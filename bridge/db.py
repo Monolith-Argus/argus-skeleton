@@ -90,6 +90,20 @@ def recent_tasks(limit: int = 20) -> list[sqlite3.Row]:
         conn.close()
 
 
+def insert_schedule(schedule: dict) -> None:
+    cols = ("id", "name", "cron", "prompt", "repo", "sink", "enabled", "next_run_at", "created_at")
+    placeholders = ", ".join("?" for _ in cols)
+    conn = connect()
+    try:
+        conn.execute(
+            f"INSERT INTO schedules ({', '.join(cols)}) VALUES ({placeholders})",
+            tuple(schedule.get(c) for c in cols),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def due_schedules(now_ts: int) -> list[sqlite3.Row]:
     conn = connect()
     try:
