@@ -6,10 +6,14 @@ Safe to run multiple times — uses INSERT OR IGNORE with deterministic IDs.
 """
 from __future__ import annotations
 
+import logging
+import sqlite3
 import time
 
 from bridge.db import connect, init_db
 from scheduler.cron import next_after
+
+log = logging.getLogger("argus.seed_schedules")
 
 _SCHEDULES = [
     {
@@ -29,11 +33,30 @@ _SCHEDULES = [
 ]
 
 
+def _schema_has_col(conn: sqlite3.Connection, table: str, col: str) -> bool:
+    rows = conn.execute(f"PRAGMA table_info({table})").fetchall()
+    return any(row[1] == col for row in rows)
+
+
 def seed() -> None:
-    init_db()
+    try:
+        init_db()
+    except sqlite3.OperationalError as exc:
+        # The connected DB may have a different schema version (e.g. the
+        # production Argus DB whose schedules table predates next_run_at).
+        # Log a warning and continue; the INSERT below handles incompatibility.
+        log.warning("init_db() skipped incompatible migration: %s", exc)
+
     now = int(time.time())
     conn = connect()
     try:
+        if not _schema_has_col(conn, "schedules", "next_run_at"):
+            log.warning(
+                "schedules table has no next_run_at column — "
+                "skipping seed (use the production schedule manager instead)"
+            )
+            return
+
         for s in _SCHEDULES:
             next_run = next_after(s["cron"], now)
             conn.execute(
@@ -60,4 +83,5 @@ def seed() -> None:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
     seed()
